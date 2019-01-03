@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from fpdf import FPDF
 import math
 import pint
@@ -39,16 +41,32 @@ class PuncherMaker():
   def __init__(self, pdf):
     self.pdf = pdf
 
-  def make(self, width, height):
+  # this sets up the cut line, side lines and top/bottom rulers
+  def draw_basic_template(self, width, height, bold):
     self.pdf.add_page(orientation='L', format=(height, width))
-
-    # self.pdf.line(0, height/2, width, height/2)
 
     self.set_cut_line()
     self.pdf.rect(0, 0, width, height)
 
-    self.draw_ruler(width, height, margin=0, invert=False)
-    self.draw_ruler(width, height, margin=FirstHoleAt, invert=True)
+    self.draw_ruler(width, height, margin=0, invert=False, bold=bold)
+    self.draw_ruler(width, height, margin=FirstHoleAt, invert=True, bold=bold)
+
+  def make_belt_jig(self, height):
+    BeltHoleWidth = 0.5
+    width = FirstHoleAt + 2 + FirstHoleAt
+    self.draw_basic_template(width, height, bold=False)
+    self.set_cut_line()
+    self.draw_circle_at_center(FirstHoleAt, height/2, FiveMM)
+    self.draw_circle_at_center(width - FirstHoleAt, height/2, FiveMM)
+
+    #self.draw_circle_at_center(width/2, height/2, FiveMM)
+    #self.draw_circle_at_center(width/2 - BeltHoleWidth/2, height/2, FiveMM)
+    #self.draw_circle_at_center(width/2 + BeltHoleWidth/2, height/2, FiveMM)
+    self.pdf.set_line_width((0.001 * ureg.point).to('inch').magnitude)
+    self.pdf.rect(width/2 - BeltHoleWidth/2, height/2 - FiveMM/2, BeltHoleWidth, FiveMM)
+
+  def make(self, width, height):
+    self.draw_basic_template(width, height, bold=True)
 
     if (height/3 > FiveMM):
       self.draw_at_slice_right(slices=3, width=width, height=height)
@@ -61,7 +79,6 @@ class PuncherMaker():
       self.draw_at_slice_left(slices=3, width=width, height=height)
     else:
       self.draw_at_slice_left(slices=2, width=width, height=height)
-
 
     size_str = simplify_float(height) + '"'
     self.pdf.set_font('Arial', 'B', 14)
@@ -84,7 +101,7 @@ class PuncherMaker():
     self.pdf.set_draw_color(0, 0, 0)
 
 
-  def draw_ruler(self, width, height, margin = 0, invert=False):
+  def draw_ruler(self, width, height, margin = 0, invert=False, bold=False):
     y_start = 0
     y_factor = 0
     if invert:
@@ -121,7 +138,7 @@ class PuncherMaker():
         height = MaxHeight * 0.4
 
       # if it's at zero or 1.75, which are intervals I like, make it bold
-      if (slice in SpecialSlices):
+      if (bold and (slice in SpecialSlices)):
         self.set_thick_engrave_line()
       else:
         self.set_engrave_line()
@@ -164,7 +181,23 @@ class PuncherMaker():
       self.draw_circle_at_center(x, y, size)
       x += spacing
 
+
+def make_jigs():
+  # make 6" hole jigs
+  pdf = FPDF(orientation = 'L', unit = 'in')
+  maker = PuncherMaker(pdf)
+
+  size = initial_size = 0.25
+  interval = 0.25
+  max_size = 2
+  while (size < max_size):
+    size += interval
+    maker.make(6, size)
+
+  pdf.output('rivet_jigs.pdf')
+
 if __name__ == '__main__':
+    # make ?" belt jigs
     pdf = FPDF(orientation = 'L', unit = 'in')
     maker = PuncherMaker(pdf)
 
@@ -173,6 +206,6 @@ if __name__ == '__main__':
     max_size = 2
     while (size < max_size):
       size += interval
-      maker.make(6, size)
+      maker.make_belt_jig(size)
 
-    pdf.output('draw_lines.pdf')
+    pdf.output('belt_loop_jigs.pdf')
