@@ -40,6 +40,8 @@ def simplify_float(number):
 class PuncherMaker():
   def __init__(self, pdf):
     self.pdf = pdf
+    self.pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
+    self.pdf.set_font('Roboto')
 
   # this sets up the cut line, side lines and top/bottom rulers
   def draw_basic_template(self, width, height, bold):
@@ -51,7 +53,7 @@ class PuncherMaker():
     self.draw_ruler(width, height, margin=0, invert=False, bold=bold)
     self.draw_ruler(width, height, margin=FirstHoleAt, invert=True, bold=bold)
 
-  def make_belt_jig(self, height):
+  def make_belt_jig(self, height, ignore):
     BeltHoleWidth = 0.5
     width = FirstHoleAt + 2 + FirstHoleAt
     self.draw_basic_template(width, height, bold=False)
@@ -59,13 +61,13 @@ class PuncherMaker():
     self.draw_circle_at_center(FirstHoleAt, height/2, FiveMM)
     self.draw_circle_at_center(width - FirstHoleAt, height/2, FiveMM)
 
-    #self.draw_circle_at_center(width/2, height/2, FiveMM)
-    #self.draw_circle_at_center(width/2 - BeltHoleWidth/2, height/2, FiveMM)
-    #self.draw_circle_at_center(width/2 + BeltHoleWidth/2, height/2, FiveMM)
-    self.pdf.set_line_width((0.001 * ureg.point).to('inch').magnitude)
+    self.draw_circle_at_center(width/2, height/2, FiveMM)
+    self.draw_circle_at_center(width/2 - BeltHoleWidth/2, height/2, FiveMM)
+    self.draw_circle_at_center(width/2 + BeltHoleWidth/2, height/2, FiveMM)
+    self.set_cut_line()
     self.pdf.rect(width/2 - BeltHoleWidth/2, height/2 - FiveMM/2, BeltHoleWidth, FiveMM)
 
-  def make(self, width, height):
+  def make_jig(self, height, width):
     self.draw_basic_template(width, height, bold=True)
 
     if (height/3 > FiveMM):
@@ -81,10 +83,9 @@ class PuncherMaker():
       self.draw_at_slice_left(slices=2, width=width, height=height)
 
     size_str = simplify_float(height) + '"'
-    self.pdf.set_font('Arial', 'B', 14)
-    string_width = self.pdf.get_string_width(size_str)
+    string_width = self.pdf.get_string_width(size_str, normalized=True)
     string_height = self.pdf.get_string_width('M')*0.8 #1 em (nominally, the height of the font)
-    if (len(size_str) > 2) or size > 1:
+    if (len(size_str) > 2) or height > 1:
       string_width = 0
     self.pdf.text(width/2 - string_width/2, height/2 + string_height/2, size_str)
 
@@ -176,36 +177,32 @@ class PuncherMaker():
     self.pdf.ellipse(x - (size / 2), y - (size / 2), size, size)
 
   def make_circles_at(self, x, y, size, spacing, num):
+    self.set_cut_line()
     self.pdf.set_draw_color(255, 0, 0)
     for i in range(0, num):
       self.draw_circle_at_center(x, y, size)
       x += spacing
 
 
-def make_jigs():
+def make_jig_helper(cbname, filename):
   # make 6" hole jigs
   pdf = FPDF(orientation = 'L', unit = 'in')
   maker = PuncherMaker(pdf)
 
+  cb = getattr(maker, cbname)
+
   size = initial_size = 0.25
-  interval = 0.25
+  interval = 0.125
   max_size = 2
   while (size < max_size):
     size += interval
-    maker.make(6, size)
+    cb(size, 6)
 
-  pdf.output('rivet_jigs.pdf')
+  pdf.output(filename)
+
+def make_belt_jigs():
+  make_jig_helper('make_belt_jig', 'belt_jigs.pdf')
+  make_jig_helper('make_jig', 'rivet_jigs.pdf')
 
 if __name__ == '__main__':
-    # make ?" belt jigs
-    pdf = FPDF(orientation = 'L', unit = 'in')
-    maker = PuncherMaker(pdf)
-
-    size = initial_size = 0.25
-    interval = 0.25
-    max_size = 2
-    while (size < max_size):
-      size += interval
-      maker.make_belt_jig(size)
-
-    pdf.output('belt_loop_jigs.pdf')
+  make_belt_jigs()
