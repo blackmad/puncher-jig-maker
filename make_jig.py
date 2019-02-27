@@ -40,8 +40,8 @@ def simplify_float(number):
 class PuncherMaker():
   def __init__(self, pdf):
     self.pdf = pdf
-    self.pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
-    self.pdf.set_font('Roboto')
+    self.pdf.add_font('Arial', '', 'Arial.ttf', uni=True)
+    self.pdf.set_font('Arial')
 
   # this sets up the cut line, side lines and top/bottom rulers
   def draw_basic_template(self, width, height, bold):
@@ -70,17 +70,17 @@ class PuncherMaker():
   def make_jig(self, height, width):
     self.draw_basic_template(width, height, bold=True)
 
+    right_slices = 2
     if (height/3 > FiveMM):
-      self.draw_at_slice_right(slices=3, width=width, height=height)
-    else:
-      self.draw_at_slice_right(slices=2, width=width, height=height)
+      right_slices = 3
+    self.draw_at_slice_right(slices=right_slices, width=width, height=height)
 
+    left_slices = 2
     if (height/4 > FiveMM):
-      self.draw_at_slice_left(slices=4, width=width, height=height)
-    elif (height/3 > FiveMM):
-      self.draw_at_slice_left(slices=3, width=width, height=height)
-    else:
-      self.draw_at_slice_left(slices=2, width=width, height=height)
+      left_slices = 4
+    elif (height/3 > FiveMM) and right_slices != 3:
+      left_slices = 3
+    self.draw_at_slice_left(slices=left_slices, width=width, height=height)
 
     size_str = simplify_float(height) + '"'
     string_width = self.pdf.get_string_width(size_str, normalized=True)
@@ -157,7 +157,7 @@ class PuncherMaker():
       self.set_engrave_line()
       self.pdf.line(0, y, 0.25, y)
 
-      # now draw circles
+      # now draw circlesg
       self.make_circles_at(x=FirstHoleAt, y=y, size=FiveMM, spacing=spacing, num=int(((width / 2) - FirstHoleAt)/spacing))
 
   def draw_at_slice_right(self, slices, width, height):
@@ -187,16 +187,24 @@ class PuncherMaker():
 def make_jig_helper(cbname, filename):
   # make 6" hole jigs
   pdf = FPDF(orientation = 'L', unit = 'in')
-  maker = PuncherMaker(pdf)
-
-  cb = getattr(maker, cbname)
+  maker1 = PuncherMaker(pdf)
 
   size = initial_size = 0.25
   interval = 0.125
   max_size = 2
   while (size < max_size):
+    # add this to the grouped pdf
+    cb1 = getattr(maker1, cbname)
+    cb1(size, 6)
+
+    # output an individual pdf for this
+    pdf2 = FPDF(orientation = 'L', unit = 'in')
+    maker2 = PuncherMaker(pdf2)
+    cb2 = getattr(maker2, cbname)
+    cb2(size, 6)
+    pdf2.output('%s_%s' % (size, filename))
+
     size += interval
-    cb(size, 6)
 
   pdf.output(filename)
 
