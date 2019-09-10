@@ -5,6 +5,9 @@ from fpdf import FPDF
 import math
 import os
 
+from fraction_utils import simplify_float
+
+
 import pint
 ureg = pint.UnitRegistry()
 
@@ -30,6 +33,27 @@ class RulerMaker(BaseRulerMaker):
     self.pdf.set_font('Arial')
     self.pdf.set_font_size((args.height * ureg.parse_expression(unit)).to('point').magnitude / 3.5)
 
+  def draw_side_ticks(self, width, height):
+    if unit == 'cm':
+      side_tick_length = 2.5
+    elif unit == 'in':
+      side_tick_length = 0.25
+
+    self.set_engrave_line()
+    # left side, thirds
+    slices = 3
+    for fraction in range(1, slices):
+      y = height * fraction / slices
+      # first draw lines on the side
+      self.pdf.line(0, y, side_tick_length, y)
+
+    # right side, quarters
+    slices = 4
+    for fraction in range(1, slices):
+      y = height * fraction / slices
+      # first draw lines on the side
+      self.pdf.line(width-side_tick_length, y, width, y)
+
   def draw_ticks(self, width, height):
     if unit == 'in':
       sliceDiv = 0.125
@@ -40,10 +64,9 @@ class RulerMaker(BaseRulerMaker):
 
     maxHeight = height * 0.25
 
-    for slice in range(0, slices + 1):
+    for slice in range(1, slices):
       if unit == 'cm':
         if slice % 10 == 0:
-          print('max Height!')
           lineHeight = maxHeight  
         else: 
           lineHeight = maxHeight * 0.7
@@ -58,7 +81,6 @@ class RulerMaker(BaseRulerMaker):
           lineHeight = maxHeight * 0.4
 
       if lineHeight == maxHeight:
-        print('max Height bold!')
         self.set_thick_engrave_line()
       else:
         self.set_engrave_line()
@@ -74,7 +96,8 @@ class RulerMaker(BaseRulerMaker):
 
     self.set_cut_line()
     self.pdf.rect(0, 0, width, height)
-    self.draw_height_in_middle(height=height, width=width, unit=unit)
+    self.draw_string_in_middle(height=height, width=width, string=f'{simplify_float(height)}{unit} x {simplify_float(width)}{unit}')
+    self.draw_side_ticks(height=height, width=width)
     self.draw_ticks(height=height, width=width)
 
 def make_ruler():    

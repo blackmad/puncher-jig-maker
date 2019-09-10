@@ -3,6 +3,9 @@
 from fpdf import FPDF
 import math
 import pint
+import os
+from fraction_utils import simplify_float
+
 
 ureg = pint.UnitRegistry()
 
@@ -57,7 +60,10 @@ class PuncherMaker(BaseRulerMaker):
       left_slices = 3
     self.draw_at_slice_left(slices=left_slices, width=width, height=height)
 
-    self.draw_height_in_middle(height=height, width=width, unit='"')
+    size_str = f'{simplify_float(height)}"'
+    if (height > 1):
+      size_str = ' ' + size_str
+    self.draw_string_in_middle(height=height, width=width, string=size_str)
 
   def draw_ruler(self, width, height, margin = 0, invert=False, bold=False):
     y_start = 0

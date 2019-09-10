@@ -1,5 +1,3 @@
-from fraction_utils import simplify_float
-
 import pint
 ureg = pint.UnitRegistry()
 
@@ -20,11 +18,10 @@ class BaseRulerMaker:
     self.pdf.set_line_width((2 * ureg.point).to(self.unit).magnitude)
     self.pdf.set_draw_color(0, 0, 0)
 
-  def draw_height_in_middle(self, height, width, unit):
-    size_str = f'{simplify_float(height)}{unit} x {simplify_float(width)}{unit}'
-    string_width = self.pdf.get_string_width(size_str, normalized=True)
+  def draw_string_in_middle(self, height, width, string):
+    string_width = self.pdf.get_string_width(string, normalized=True)
     string_height = self.pdf.get_string_width('M')*0.8 #1 em (nominally, the height of the font)
     # if (len(size_str) > 2): # or height > 1:
       # string_width = 0
     # print((width/2 - string_width/2, height/2 + string_height/2, size_str))
-    self.pdf.text(width/2 - string_width/2, height/2 + string_height/2, size_str)
+    self.pdf.text(width/2 - string_width/2, height/2 + string_height/2, string)
