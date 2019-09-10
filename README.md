@@ -26,6 +26,6 @@ This tool requires the installation of pyfpdf from github, not pip https://githu
 These are likely only relevant to your life if you are me and are making leather accessories, but maybe you will find a use fo r them.
 
 ### Generate all jigs
-   make_jigs.py
+    make_jigs.py
    
 ![3/4 rivet jig](http://dump.blackmad.com.s3.amazonaws.com/rulers/0.75_rivet_jigs.pdf.png)
