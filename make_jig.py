@@ -10,37 +10,12 @@ FiveMM = (5 * ureg.mm).to('inch').magnitude
 FirstHoleAt = 0.5
 HoleInterval = 0.25
 
-import unicodedata
+from base_ruler_maker import BaseRulerMaker
 
-def simplify_float(number):
-    vf = "VULGAR FRACTION "
-    vulgars = {0.125 : unicodedata.lookup(vf + "ONE EIGHTH"),
-               0.2   : unicodedata.lookup(vf + "ONE FIFTH"),
-               0.25  : unicodedata.lookup(vf + "ONE QUARTER"),
-               0.375 : unicodedata.lookup(vf + "THREE EIGHTHS"),
-               0.4   : unicodedata.lookup(vf + "TWO FIFTHS"),
-               0.5   : unicodedata.lookup(vf + "ONE HALF"),
-               0.6   : unicodedata.lookup(vf + "THREE FIFTHS"),
-               0.625 : unicodedata.lookup(vf + "FIVE EIGHTHS"),
-               0.75  : unicodedata.lookup(vf + "THREE QUARTERS"),
-               0.8   : unicodedata.lookup(vf + "FOUR FIFTHS"),
-               0.875 : unicodedata.lookup(vf + "SEVEN EIGHTHS")}
-
-    decimal = int(number)
-    if number == decimal:
-        return str(decimal)
-
-    vulgar = vulgars.get(number - decimal)
-    if vulgar:
-        if decimal == 0:
-            return vulgar
-        return "%d%s" % (decimal, vulgar)
-    return "%.1f" % number
-
-class PuncherMaker():
+class PuncherMaker(BaseRulerMaker):
   def __init__(self, pdf):
-    self.pdf = pdf
-    self.pdf.add_font('Arial', '', 'Arial.ttf', uni=True)
+    super(PuncherMaker, self).__init__(pdf, 'inch')
+    self.pdf.add_font('Arial', '', 'fonts/Arial.ttf', uni=True)
     self.pdf.set_font('Arial')
 
   # this sets up the cut line, side lines and top/bottom rulers
@@ -82,25 +57,7 @@ class PuncherMaker():
       left_slices = 3
     self.draw_at_slice_left(slices=left_slices, width=width, height=height)
 
-    size_str = simplify_float(height) + '"'
-    string_width = self.pdf.get_string_width(size_str, normalized=True)
-    string_height = self.pdf.get_string_width('M')*0.8 #1 em (nominally, the height of the font)
-    if (len(size_str) > 2) or height > 1:
-      string_width = 0
-    self.pdf.text(width/2 - string_width/2, height/2 + string_height/2, size_str)
-
-  def set_cut_line(self):
-    self.pdf.set_line_width((0.001 * ureg.point).to('inch').magnitude)
-    self.pdf.set_draw_color(255, 0, 0)
-
-  def set_engrave_line(self):
-    self.pdf.set_line_width((1 * ureg.point).to('inch').magnitude)
-    self.pdf.set_draw_color(0, 0, 0)
-
-  def set_thick_engrave_line(self):
-    self.pdf.set_line_width((2 * ureg.point).to('inch').magnitude)
-    self.pdf.set_draw_color(0, 0, 0)
-
+    self.draw_height_in_middle(height=height, width=width, unit='"')
 
   def draw_ruler(self, width, height, margin = 0, invert=False, bold=False):
     y_start = 0
@@ -209,6 +166,8 @@ def make_jig_helper(cbname, filename):
   pdf.output(filename)
 
 def make_belt_jigs():
+  if not os.path.isdir('output'):
+    os.mkdir('output')
   make_jig_helper('make_belt_jig', 'belt_jigs.pdf')
   make_jig_helper('make_jig', 'rivet_jigs.pdf')
 
