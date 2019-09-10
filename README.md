@@ -2,9 +2,12 @@
 
 A tool for making custom rulers, and custom jigs for helping space rivet holes in leather.
 
+I personally find it super useful to have a collection of rulers around that I know exactly how tall they are. These rulers end up being super useful for mindless spacing of cuts (in my case, often leather straps). It's hard to find commercial rulers that are thick enough to cut against, in the sizes I want, and sometimes they lie about the size (I bought a nice ruler advertised as 1" tall that was actually 1.125")
+
 The tool assumes you're sending these to a laser cutter that likes 0.001pt #ff0000 lines for cuts, and black areas for engraving.
 
 This tool requires the installation of pyfpdf from github, not pip https://github.com/reingart/pyfpdf
+
 
 ## Ruler maker
 
@@ -23,7 +26,9 @@ This tool requires the installation of pyfpdf from github, not pip https://githu
 
 ## Jig maker
 
-These are likely only relevant to your life if you are me and are making leather accessories, but maybe you will find a use fo r them.
+These are likely only relevant to your life if you are me and are making leather accessories, but maybe you will find a use fo r them. 
+
+More narrative explanation of how these are used: https://blackmad.com/leather-working/custom-jigs-rulers/
 
 ### Generate all jigs
     make_jigs.py
