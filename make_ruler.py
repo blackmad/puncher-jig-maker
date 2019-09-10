@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from fpdf import FPDF
 
@@ -67,8 +67,8 @@ class RulerMaker(BaseRulerMaker):
     for slice in range(1, slices):
       if unit == 'cm':
         if slice % 10 == 0:
-          lineHeight = maxHeight  
-        else: 
+          lineHeight = maxHeight
+        else:
           lineHeight = maxHeight * 0.7
       elif unit == 'in':
         if slice % 8 == 0:
@@ -88,7 +88,7 @@ class RulerMaker(BaseRulerMaker):
       x = slice * sliceDiv
       self.pdf.line(x, 0, x, lineHeight) # math.fabs(y_factor - height))
       self.pdf.line(x, height, x, height - lineHeight) # math.fabs(y_factor - height))
-    
+
   def draw_basic_template(self, width, height, unit):
     print(height)
     print(width)
@@ -100,7 +100,7 @@ class RulerMaker(BaseRulerMaker):
     self.draw_side_ticks(height=height, width=width)
     self.draw_ticks(height=height, width=width)
 
-def make_ruler():    
+def make_ruler():
   pdf = FPDF(orientation = 'L', unit = unit)
   ruler_maker = RulerMaker(pdf)
   ruler_maker.draw_basic_template(width=args.width, height=args.height, unit=' ' + args.unit)

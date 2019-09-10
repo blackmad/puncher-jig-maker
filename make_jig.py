@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from fpdf import FPDF
 import math
@@ -18,7 +18,7 @@ from base_ruler_maker import BaseRulerMaker
 class PuncherMaker(BaseRulerMaker):
   def __init__(self, pdf):
     super(PuncherMaker, self).__init__(pdf, 'inch')
-    self.pdf.add_font('Arial', '', 'fonts/Arial.ttf', uni=True)
+    self.pdf.add_font('Arial', '', 'Arial.ttf', uni=True)
     self.pdf.set_font('Arial')
 
   # this sets up the cut line, side lines and top/bottom rulers
